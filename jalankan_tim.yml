@@ -1,0 +1,45 @@
+name: Jalankan Tim AI 6 Agen
+
+on:
+  workflow_dispatch:
+    inputs:
+      topik:
+        description: 'Masukkan topik atau perintah produk hari ini'
+        required: true
+        default: 'Ide bisnis digital otomatis tahun ini'
+  schedule:
+    - cron: '0 1 * * *' # Otomatis jalan setiap jam 08.00 WIB (01.00 UTC)
+
+permissions:
+  contents: write
+  models: read
+
+jobs:
+  eksekusi-tim:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil kode repositori
+        uses: actions/checkout@v4
+
+      - name: Siapkan Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instal pustaka
+        run: pip install -r requirements.txt
+
+      - name: Jalankan 6 Agen AI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOPIK_UTAMA: ${{ github.event.inputs.topik || 'Tips otomasi bisnis harian' }}
+          WEBHOOK_MEDSOS: ${{ secrets.WEBHOOK_MEDSOS }}
+        run: python tim_ai.py
+
+      - name: Simpan hasil produk ke GitHub
+        run: |
+          git config user.name "Tim AI Eksekutor"
+          git config user.email "bot@github.com"
+          git add hasil_produk/
+          git commit -m "Produk baru dari Tim AI" || exit 0
+          git push
